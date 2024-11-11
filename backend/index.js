@@ -1,9 +1,13 @@
-const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const functions = require("firebase-functions");
 
-admin.initializeApp();
+// Initialize Firebase Admin SDK with the service account
+const serviceAccount = require("./tinkering24-88f4d-firebase-adminsdk-tf8a5-33716c6887.json");
 
-const db = admin.firestore();
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://tinkeringfalldetection-default-rtdb.firebaseio.com/",
+});
 
 // Function triggers when `fallDetected` field changes
 exports.notifyFallDetected = functions.firestore
