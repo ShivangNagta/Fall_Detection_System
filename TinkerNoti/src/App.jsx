@@ -216,6 +216,7 @@ const App = () => {
         await signInWithEmailAndPassword(auth, email, password);
       }
     } catch (error) {
+      console.error('Auth error:', error.code, error.message);
       setError(error.message);
     }
   };
