@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getDatabase } from 'firebase/database';
-import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import { getDatabase, ref, set } from 'firebase/database';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBq1WZIMK33fvFHhwsnI-T1MnpdmUbUy5s",
@@ -19,13 +19,18 @@ export const auth = getAuth(app);
 export const db = getDatabase(app);
 const messaging = getMessaging(app);
 
-export const requestPermission = async () => {
+export const saveTokenToDatabase = (userId, token) => {
+  const tokenRef = ref(db, `users/${userId}/fcmToken`);
+  return set(tokenRef, token);
+};
+
+export const requestPermission = async (userId) => {
   try {
     await Notification.requestPermission();
-    const token = await getToken(messaging, { vapidKey: "YOUR_VAPID_KEY" });
+    const token = await getToken(messaging, { vapidKey: "YOUR_ACTUAL_VAPID_KEY" });
     if (token) {
       console.log("FCM Token:", token);
-      // Save this token in your database to send notifications to this user
+      await saveTokenToDatabase(userId, token);  // Save token with user ID in the database
     }
   } catch (error) {
     console.error("Permission denied or error:", error);

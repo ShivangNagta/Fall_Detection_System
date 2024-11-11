@@ -14,7 +14,7 @@ import {
   remove, 
   update 
 } from 'firebase/database';
-import { auth, db } from './firebase';
+import { auth, db } from '../../backend/firebase';
 import { Bell, UserPlus, LogOut, Check, X, Mail, MessageSquare } from 'lucide-react';
 
 const App = () => {
@@ -41,6 +41,7 @@ const App = () => {
         loadUserData(user.uid);
         // Listen for notifications
         listenForNotifications(user.uid);
+        requestNotificationPermission(user); // Request permission on login
       } else {
         setUser(null);
         setContacts([]);
@@ -50,6 +51,41 @@ const App = () => {
     });
 
     return () => unsubscribe();
+  }, []);
+
+  // Function to request notification permission and get FCM token
+  const requestNotificationPermission = async (user) => {
+    try {
+      const messaging = getMessaging();
+      const permission = await Notification.requestPermission();
+      
+      if (permission === 'granted') {
+        const token = await getToken(messaging, { vapidKey: 'YOUR_PUBLIC_VAPID_KEY' });
+        
+        if (token) {
+          // Store the token in the Firebase database or associate it with the user
+          await update(ref(db, `users/${user.uid}/preferences`), { fcmToken: token });
+        } else {
+          console.warn('No FCM token received');
+        }
+      } else {
+        console.warn('Notification permission denied');
+      }
+    } catch (error) {
+      console.error('Error getting notification permission or FCM token:', error);
+    }
+  };
+
+  // Function to handle incoming FCM messages while app is in the foreground
+  useEffect(() => {
+    const messaging = getMessaging();
+    onMessage(messaging, (payload) => {
+      console.log('Message received: ', payload);
+      setNotifications((prevNotifications) => [
+        ...prevNotifications,
+        { message: payload.notification.body, type: 'alert', timestamp: Date.now() }
+      ]);
+    });
   }, []);
 
   const findUserByEmail = async (email) => {
