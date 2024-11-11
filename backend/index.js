@@ -1,50 +1,49 @@
-const admin = require("firebase-admin");
-const functions = require("firebase-functions");
+const express = require('express');
+const admin = require('firebase-admin');
+const bodyParser = require('body-parser');
 
-// Initialize Firebase Admin SDK with the service account
-const serviceAccount = require("./tinkering24-88f4d-firebase-adminsdk-tf8a5-33716c6887.json");
-
+// Initialize Firebase Admin SDK
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://tinkeringfalldetection-default-rtdb.firebaseio.com/",
+  credential: admin.credential.cert(require('./tinkering24-88f4d-firebase-adminsdk-tf8a5-33716c6887.json')),
+  databaseURL: 'https://your-project-id.firebaseio.com'
 });
 
-// Function triggers when `fallDetected` field changes
-exports.notifyFallDetected = functions.firestore
-  .document("fallEvents/{userId}")
-  .onUpdate(async (change, context) => {
-    const { userId } = context.params;
-    const newValue = change.after.data();
+const db = admin.firestore();
+const app = express();
+app.use(bodyParser.json());
 
-    // Check if fallDetected is true
-    if (newValue.fallDetected) {
-      try {
-        // Retrieve user's FCM token from Firestore
-        const userDoc = await db.collection("users").doc(userId).get();
-        if (!userDoc.exists) {
-          console.log("User not found");
-          return null;
-        }
+// POST endpoint for fall detection
+app.post('/fallDetection', async (req, res) => {
+  const { userId } = req.body; // Assuming you send userId from ESP32
 
-        const userData = userDoc.data();
-        const fcmToken = userData.fcmToken;
-
-        // Construct the notification message
-        const message = {
-          token: fcmToken,
-          notification: {
-            title: "Fall Detected",
-            body: "A fall has been detected. Please check on the user.",
-          },
-        };
-
-        // Send notification via Firebase Cloud Messaging
-        await admin.messaging().send(message);
-        console.log("Notification sent to user:", userId);
-      } catch (error) {
-        console.error("Error sending notification:", error);
-      }
+  try {
+    // Get the FCM token for the user from Firestore
+    const userDoc = await db.collection('users').doc(userId).get();
+    if (!userDoc.exists) {
+      return res.status(404).send('User not found');
     }
 
-    return null;
-  });
+    const userData = userDoc.data();
+    const fcmToken = userData.fcmToken;
+    console.log('usertoken',fcmToken);
+
+    // Send notification if fall is detected
+    const message = {
+      token: fcmToken,
+      notification: {
+        title: 'Fall Detected',
+        body: 'A fall has been detected. Please check on the user.',
+      }
+    };
+
+    await admin.messaging().send(message);
+    res.status(200).send('Notification sent successfully');
+  } catch (error) {
+    console.error('Error sending notification:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+app.listen(5137, () => {
+  console.log('Backend server is running on port 5137');
+});

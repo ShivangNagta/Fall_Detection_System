@@ -14,7 +14,8 @@ import {
   remove, 
   update 
 } from 'firebase/database';
-import { auth, db } from '../../backend/firebase';
+import { auth, db } from '../firebase';
+import { getMessaging, onMessage, getToken } from 'firebase/messaging';
 import { Bell, UserPlus, LogOut, Check, X, Mail, MessageSquare } from 'lucide-react';
 
 const App = () => {
@@ -32,6 +33,19 @@ const App = () => {
     app: true,
     sms: false
   });
+
+  useEffect(() => {
+    // Check if the browser supports service workers
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
+    }
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -60,7 +74,7 @@ const App = () => {
       const permission = await Notification.requestPermission();
       
       if (permission === 'granted') {
-        const token = await getToken(messaging, { vapidKey: 'YOUR_PUBLIC_VAPID_KEY' });
+        const token = await getToken(messaging, { vapidKey: 'BF7Y-jDYwrv-D7JMNVP2lR7axefh10Pc5lzVcmm1y6Gas_1jRLwNpNN2yAbMHSxRz22hoN9cEZQAKhKkJ0G9zfA' });
         
         if (token) {
           // Store the token in the Firebase database or associate it with the user
