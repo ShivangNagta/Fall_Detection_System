@@ -122,9 +122,9 @@ const NotificationSettings = ({ user }) => {
               <input
                 type="tel"
                 id="phoneNumber"
-                size="25"
+                size="15"
                 className="flex-1 px-4 py-2 mt-8 border-2 border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zinc-700 text-gray-100"
-                placeholder="Enter 10 digits (e.g., 1234567890)"
+                placeholder="Enter 10 digits"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 maxLength={10}

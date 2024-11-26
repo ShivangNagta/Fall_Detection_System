@@ -6,7 +6,7 @@ const Contacts = ({ user }) => {
   const [contacts, setContacts] = useState([]);
   const [contactDetails, setContactDetails] = useState({});
 
-  // Fetch contact IDs
+
   useEffect(() => {
     if (user) {
       const contactsRef = ref(db, `contacts/${user.uid}`);
@@ -30,7 +30,7 @@ const Contacts = ({ user }) => {
     }
   }, [user]);
 
-  // Fetch contact details (username from users/{contactId})
+
   useEffect(() => {
     const fetchContactDetails = async () => {
       const details = {};
@@ -79,7 +79,6 @@ const Contacts = ({ user }) => {
               className="flex items-center justify-between bg-zinc-700 rounded-lg px-4 py-2"
             >
               <span className="text-gray-100">{contactDetails[contactId] || "Loading..."}</span>
-              <span className="text-sm text-gray-400">{contactId}</span>
             </li>
           ))}
         </ul>

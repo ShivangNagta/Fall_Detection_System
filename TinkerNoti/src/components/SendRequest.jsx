@@ -26,7 +26,7 @@ const SendRequest = ({ user }) => {
           .map(([id, value]) => ({ id, ...value }))
           .filter(
             (userEntry) =>
-              userEntry.id !== user.uid && 
+              userEntry.id !== user.uid &&
               userEntry.username?.toLowerCase().includes(lowerCaseSearchTerm)
           );
 
@@ -63,7 +63,7 @@ const SendRequest = ({ user }) => {
   return (
     <div className="p-6 bg-zinc-800 rounded-lg shadow-lg">
       <h2 className="text-xl font-bold text-gray-100 mb-4">Send Friend Request</h2>
-      <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
         <input
           type="text"
           placeholder="Search username"
@@ -74,7 +74,7 @@ const SendRequest = ({ user }) => {
         />
         <button
           onClick={handleSearch}
-          className="px-4 py-2 bg-zinc-700 text-gray-100 rounded-lg hover:bg-zinc-600 transition duration-300"
+          className="px-4 py-2 bg-zinc-700 text-gray-100 rounded-lg hover:bg-zinc-600 transition duration-300 w-full sm:w-auto"
         >
           Search
         </button>
@@ -107,6 +107,7 @@ const SendRequest = ({ user }) => {
         ))}
       </ul>
     </div>
+
   );
 };
 
