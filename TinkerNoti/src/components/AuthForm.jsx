@@ -32,7 +32,7 @@ const AuthForm = () => {
       await set(userRef, {
         ...userData,
         notificationSettings: {
-          inAppNotification: true,
+          inAppNotification: false,
           smsNotification: false,
         },
         connections: [],
@@ -61,6 +61,7 @@ const AuthForm = () => {
       setError('');
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
+      const token = await getFCMToken();
 
       const userRef = ref(db, `users/${user.uid}`);
       const snapshot = await get(userRef);
@@ -70,8 +71,9 @@ const AuthForm = () => {
           username: user.displayName,
           email: user.email,
           provider: 'google',
+          fcmToken: token,
           notificationSettings: {
-            inAppNotification: true,
+            inAppNotification: false,
             smsNotification: false,
           },
           connections: [],
