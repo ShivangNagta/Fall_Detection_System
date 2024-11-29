@@ -46,13 +46,13 @@ app.post("/fallDetection", async (req, res) => {
     }
 
     const fallEvent = {
-      message: `A fall has been detected for ${username}. Please check on them.`,
+      message: `A fall has been detected for ${username} at 30.9686° N, 76.4733° E. Please check on them.`,
       timestamp: Date.now(),
       username,
     };
 
     const fallEventForUser = {
-      message: "A fall has been detected for you.",
+      message: "A fall has been detected for you at 30.9686° N, 76.4733° E.",
       timestamp: Date.now(),
       username,
     }
@@ -97,7 +97,7 @@ app.post("/fallDetection", async (req, res) => {
         const contactFallEventRef = admin.database().ref(`/fallEvents/${contactId}`);
         notificationPromises.push(
           contactFallEventRef.set({
-            message: `A fall has been detected for your contact (${username}).`,
+            message: `A fall has been detected for your contact (${username}) 30.9686° N, 76.4733° E.`,
             timestamp: Date.now(),
           })
         );
@@ -107,7 +107,7 @@ app.post("/fallDetection", async (req, res) => {
       if (smsNotification && phoneNumber) {
         notificationPromises.push(
           twilioClient.messages.create({
-            body: `A fall has been detected for your contact ${username}. Please check on them.`,
+            body: `A fall has been detected for your contact ${username} 30.9686° N, 76.4733° E. Please check on them.`,
             from: process.env.TWILIO_PHONE_NUMBER,
             to: phoneNumber,
           })
