@@ -1,4 +1,4 @@
-Flask==5.0.0
+Flask
 tensorflow==2.18.0
 flask-cors
 numpy
