@@ -3,15 +3,14 @@ const cors = require("cors");
 const admin = require("firebase-admin");
 const bodyParser = require("body-parser");
 const twilio = require("twilio");
-const axios = require('axios');
 require("dotenv").config();
 
 const port = process.env.PORT || 3001;
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
-app.use(bodyParser.json());
 
 admin.initializeApp({
   credential: admin.credential.cert({
@@ -23,52 +22,27 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
+app.use(bodyParser.json());
+
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
 
+app.post("/fallDetection", async (req, res) => {
+  const { userId } = req.body;
 
-// Route to receive data from ESP32
-app.post("/processFallData", async (req, res) => {
-  const { userId, data } = req.body;
-
-  // Validate that userId and data are present
-  if (!userId || !data || !Array.isArray(data) || data.length !== 200 || data.some(item => item.length !== 6)) {
-    return res.status(400).send("Invalid data format. Must be a 200-size array with 6 elements each.");
-  }
-
-  try {
-    const response = await axios.post('http://127.0.0.1:5000/predict', { data });
-
-    const fallDetected = response.data.fallDetected;
-
-    if (fallDetected) {
-      console.log(`Fall detected for user ${userId}`);
-      await handleFallDetection(userId);
-      res.status(200).send("Fall detected and notifications sent.");
-    } else {
-      res.status(200).send("No fall detected.");
-    }
-  } catch (error) {
-    console.error("Error calling Python API:", error);
-    res.status(500).send("Internal server error");
-  }
-});
-
-// Function to handle the fall detection logic (reusing your existing fallDetection route logic)
-async function handleFallDetection(userId) {
   try {
     const userRef = admin.database().ref(`/users/${userId}`);
     const userSnapshot = await userRef.once("value");
 
     if (!userSnapshot.exists()) {
-      return { status: 404, message: "User not found" };
+      return res.status(404).send("User not found");
     }
 
     const userData = userSnapshot.val();
     const { username } = userData;
 
     if (!username) {
-      return { status: 400, message: "Username not found for the user" };
+      return res.status(400).send("Username not found for the user");
     }
 
     const fallEvent = {
@@ -83,6 +57,7 @@ async function handleFallDetection(userId) {
       username,
     }
 
+  
     const fallEventRef = admin.database().ref(`/fallEvents/${userId}`);
     await fallEventRef.set(fallEventForUser);
 
@@ -93,7 +68,7 @@ async function handleFallDetection(userId) {
     const contactsSnapshot = await contactsRef.once("value");
 
     if (!contactsSnapshot.exists()) {
-      return { status: 404, message: "No contacts found for this user" };
+      return res.status(404).send("No contacts found for this user");
     }
 
     const contacts = contactsSnapshot.val();
@@ -102,6 +77,7 @@ async function handleFallDetection(userId) {
     for (const contactId of Object.keys(contacts)) {
       const contactRef = admin.database().ref(`/users/${contactId}`);
       const contactSnapshot = await contactRef.once("value");
+      console.log(contactId)
 
       if (!contactSnapshot.exists()) continue;
 
@@ -112,9 +88,11 @@ async function handleFallDetection(userId) {
 
       const { inAppNotification, smsNotification, phoneNumber } = notificationSettings;
 
+     
       const contactHistoryRef = admin.database().ref(`/fallHistory/${contactId}`);
       notificationPromises.push(contactHistoryRef.push(fallEvent));
 
+      
       if (inAppNotification) {
         const contactFallEventRef = admin.database().ref(`/fallEvents/${contactId}`);
         notificationPromises.push(
@@ -125,6 +103,7 @@ async function handleFallDetection(userId) {
         );
       }
 
+     
       if (smsNotification && phoneNumber) {
         notificationPromises.push(
           twilioClient.messages.create({
@@ -138,15 +117,12 @@ async function handleFallDetection(userId) {
 
     await Promise.all(notificationPromises);
 
+    res.status(200).send("Fall event recorded and notifications sent.");
   } catch (error) {
     console.error("Error handling fall detection:", error);
-    throw new Error("Error handling fall detection");
+    res.status(500).send("Internal server error");
   }
-}
-
-
-
-
+});
 
 // Error handling
 app.use((error, req, res, next) => {
