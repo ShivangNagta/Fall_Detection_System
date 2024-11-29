@@ -107,4 +107,4 @@ def predict():
         return jsonify({'error': 'Internal server error during prediction'}), 500
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    app.run(port=5000)
