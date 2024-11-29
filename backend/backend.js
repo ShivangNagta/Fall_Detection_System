@@ -37,7 +37,7 @@ app.post("/processFallData", async (req, res) => {
   }
 
   try {
-    const response = await axios.post('http://127.0.0.1:5000/predict', { data });
+    const response = await axios.post('https://mlserver-4hxq.onrender.com/predict', { data });
 
     const fallDetected = response.data.fallDetected;
 
