@@ -55,9 +55,9 @@ def preprocess_single_file(file_path, sequence_length=200):
     return np.array(sequences)
 
 
-
-
-
+@app.route('/')
+def index():
+    return "Fall detection service is up and running!"
 
 
 @app.route('/predict', methods=['POST'])
