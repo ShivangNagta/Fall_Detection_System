@@ -130,3 +130,4 @@ dist
 .pnp.*
 
 *.keras
+.DS_Store
