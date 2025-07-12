@@ -54,7 +54,6 @@ app.post("/processFallData", async (req, res) => {
   }
 });
 
-// Function to handle the fall detection logic (reusing your existing fallDetection route logic)
 async function handleFallDetection(userId) {
   try {
     const userRef = admin.database().ref(`/users/${userId}`);
@@ -144,11 +143,6 @@ async function handleFallDetection(userId) {
   }
 }
 
-
-
-
-
-// Error handling
 app.use((error, req, res, next) => {
   console.error(error.stack);
   res.status(500).json({
